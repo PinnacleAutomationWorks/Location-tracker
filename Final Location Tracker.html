@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provider Location Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      padding: 15px; 
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    h2 { 
+      color: #2196F3; 
+      margin-bottom: 5px;
+      font-size: 24px;
+    }
+    
+    h3 { 
+      color: #666; 
+      font-weight: normal;
+      font-size: 16px;
+    }
+    
+    .provider-input {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    input[type="text"] { 
+      width: 100%; 
+      padding: 15px; 
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+    }
+    
+    .customers-section {
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding-left: 5px;
+    }
+    
+    .customer-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    
+    .customer-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .customer-card.selected {
+      border-color: #4CAF50;
+      background: #f1f8f4;
+    }
+    
+    .customer-time {
+      color: #2196F3;
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    
+    .customer-name {
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .customer-service {
+      color: #7b1fa2;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      padding: 4px 8px;
+      background: #f3e5f5;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    
+    .customer-amount {
+      color: #2e7d32;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .customer-address {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .customer-phone-clickable {
+      margin: 12px 0;
+      padding: 12px;
+      background: #fff3e0;
+      border-radius: 8px;
+      border: 2px solid #f57c00;
+    }
+    
+    .customer-phone-clickable a {
+      color: #f57c00;
+      font-size: 18px;
+      font-weight: 600;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+    }
+    
+    .phone-label {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    
+    .action-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    
+    .action-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    
+    .action-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 14px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: fit-content;
+    }
+    
+    .action-link:active {
+      transform: scale(0.95);
+      background: #ddd;
+    }
+    
+    .action-link.maps {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .action-link.waze {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+    
+    .main-button { 
+      width: 100%;
+      background: #4CAF50; 
+      color: white; 
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      transition: all 0.2s;
+    }
+    
+    .main-button:disabled { 
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    #status { 
+      padding: 15px; 
+      margin-top: 15px; 
+      border-radius: 8px;
+      font-size: 15px;
+      text-align: center;
+    }
+    
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2196F3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .error-state-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    .error-state-title {
+      color: #d32f2f;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .error-state-message {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 id="companyName">🚗 Loading...</h2>
+      <h3>Provider Location Tracker</h3>
+    </div>
+    
+    <div class="provider-input">
+      <input type="text" id="name" placeholder="Your name" value="">
+    </div>
+    
+    <div class="customers-section">
+      <div class="section-title">📅 Today's Appointments</div>
+      <div id="customersList">
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading appointments...
+        </div>
+      </div>
+    </div>
+    
+    <button class="main-button" id="sendBtn" onclick="sendLocation()" disabled>
+      📍 Send Location & Notify Customer
+    </button>
+    
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxLoto1YsQvUVm22krTnyZXU-EuIDp2dX6xGiJiuSsI5dEsICK7iJw3BNfki1hoheNi/exec";
+    
+    function getClientIdFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const clientId = urlParams.get('client');
+      
+      if (!clientId) {
+        document.getElementById('customersList').innerHTML = `
+          <div class="error-state">
+            <div class="error-state-icon">⚠️</div>
+            <div class="error-state-title">Invalid URL</div>
+            <div class="error-state-message">
+              This page requires a client parameter.<br>
+              Example: ?client=hamilton
+            </div>
+          </div>
+        `;
+        document.getElementById('companyName').textContent = '❌ Error';
+        return null;
+      }
+      
+      return clientId;
+    }
+    
+    const CLIENT_ID = getClientIdFromURL();
+    let selectedCustomer = null;
+
+    window.onload = async function() {
+      if (CLIENT_ID) {
+        await loadTodaysCustomers();
+      }
+    };
+
+    async function loadTodaysCustomers() {
+      const customersList = document.getElementById('customersList');
+      const status = document.getElementById('status');
+      
+      try {
+        const response = await fetch(WEBHOOK_URL + '?action=getTodaysCustomers&client=' + CLIENT_ID);
+        const customers = await response.json();
+        
+        console.log('Received customers:', customers);
+        
+        if (customers && customers.length > 0) {
+          customers.sort((a, b) => {
+            if (!a.time) return 1;
+            if (!b.time) return -1;
+            return a.time.localeCompare(b.time);
+          });
+          
+          customersList.innerHTML = '';
+          
+          customers.forEach((customer, index) => {
+            const card = createCustomerCard(customer, index);
+            customersList.appendChild(card);
+          });
+          
+          status.textContent = `✅ ${customers.length} appointment(s) loaded`;
+          status.className = 'success';
+          setTimeout(() => { status.textContent = ''; status.className = ''; }, 3000);
+          
+        } else {
+          customersList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div>No appointments scheduled today</div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        customersList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <div>Error loading appointments</div>
+          </div>
+        `;
+        status.textContent = '❌ Could not load appointments. Check your connection.';
+        status.className = 'error';
+        console.error('Error:', error);
+      }
+    }
+
+    function createCustomerCard(customer, index) {
+      const card = document.createElement('div');
+      card.className = 'customer-card';
+      
+      const formatPhone = (phone) => {
+        if (!phone) return 'No phone';
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length === 11 && cleaned.startsWith('1')) {
+          return `(${cleaned.slice(1,4)}) ${cleaned.slice(4,7)}-${cleaned.slice(7)}`;
+        } else if (cleaned.length === 10) {
+          return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+        }
+        return phone;
+      };
+      
+      const formatAmount = (amount) => {
+        if (!amount) return '';
+        
+        const amountStr = amount.toString().trim();
+        
+        if (amountStr.includes('-') || amountStr.toLowerCase().includes(' to ')) {
+          const parts = amountStr.split(/[-–—]|\s+to\s+/i);
+          
+          if (parts.length === 2) {
+            const num1 = parseFloat(parts[0].replace(/[^0-9.-]+/g, ''));
+            const num2 = parseFloat(parts[1].replace(/[^0-9.-]+/g, ''));
+            
+            if (!isNaN(num1) && !isNaN(num2)) {
+              return `$${num1.toFixed(2)} - $${num2.toFixed(2)}`;
+            }
+          }
+        }
+        
+        const numAmount = parseFloat(amountStr.replace(/[^0-9.-]+/g, ''));
+        return isNaN(numAmount) ? amountStr : `$${numAmount.toFixed(2)}`;
+      };
+      
+      const formattedPhone = formatPhone(customer.phone);
+      const formattedAmount = formatAmount(customer.quote);
+      const encodedAddress = encodeURIComponent(customer.address);
+      
+      card.innerHTML = `
+        ${customer.time ? `<div class="customer-time">🕐 ${customer.time}</div>` : ''}
+        <div class="customer-name">${customer.name}</div>
+        ${customer.service ? `<div class="customer-service">🔧 ${customer.service}</div>` : ''}
+        ${formattedAmount ? `<div class="customer-amount">💰 ${formattedAmount}</div>` : ''}
+        <div class="customer-address">📍 ${customer.address}</div>
+        
+        <div class="customer-phone-clickable">
+          <div class="phone-label">📞 Hold to Call or Text</div>
+          <a href="tel:${customer.phone}">${formattedPhone}</a>
+        </div>
+        
+        <div class="action-section">
+          <div class="action-section-title">🗺️ Navigation</div>
+          <div class="action-links">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}" 
+               class="action-link maps" 
+               target="_blank">
+              Google Maps
+            </a>
+            <a href="https://waze.com/ul?q=${encodedAddress}&navigate=yes" 
+               class="action-link waze" 
+               target="_blank">
+              Waze
+            </a>
+          </div>
+        </div>
+      `;
+      
+      const phoneLink = card.querySelector('.customer-phone-clickable a');
+      phoneLink.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      
+      card.addEventListener('click', () => selectCustomer(customer, card));
+      
+      return card;
+    }
+
+    function selectCustomer(customer, cardElement) {
+      document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('selected'));
+      cardElement.classList.add('selected');
+      selectedCustomer = customer;
+      document.getElementById('sendBtn').disabled = false;
+    }
+
+    async function sendLocation() {
+      const status = document.getElementById('status');
+      const btn = document.getElementById('sendBtn');
+      const name = document.getElementById('name').value.trim();
+      
+      if (!name) {
+        status.textContent = '⚠️ Please enter your name';
+        status.className = 'error';
+        return;
+      }
+      
+      if (!selectedCustomer) {
+        status.textContent = '⚠️ Please select a customer';
+        status.className = 'error';
+        return;
+      }
+      
+      status.innerHTML = '<div class="spinner"></div>Getting your location...';
+      status.className = 'info';
+      btn.disabled = true;
+
+      if (!navigator.geolocation) {
+        status.textContent = '❌ Geolocation not supported';
+        status.className = 'error';
+        btn.disabled = false;
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            status.innerHTML = '<div class="spinner"></div>Calculating ETA...';
+            
+            await fetch(WEBHOOK_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "providerlocation",
+                client_id: CLIENT_ID,
+                provider_name: name,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                customer_name: selectedCustomer.name,
+                customer_phone: selectedCustomer.phone,
+                customer_address: selectedCustomer.address,
+                timestamp: new Date().toISOString()
+              })
+            });
+            
+            status.textContent = `✅ ${selectedCustomer.name} has been notified with your ETA!`;
+            status.className = 'success';
+            
+            setTimeout(() => {
+              document.querySelectorAll('.customer-card').forEach(c => c.classList.remove('selected'));
+              selectedCustomer = null;
+              btn.disabled = false;
+            }, 3000);
+            
+          } catch (err) {
+            status.textContent = '❌ Error: ' + err.message;
+            status.className = 'error';
+            btn.disabled = false;
+          }
+        },
+        (error) => {
+          status.textContent = '❌ Location error. Please enable location access.';
+          status.className = 'error';
+          btn.disabled = false;
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }
+  </script>
+</body>
+</html>
